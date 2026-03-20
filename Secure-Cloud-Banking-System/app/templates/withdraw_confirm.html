@@ -1,5 +1,9 @@
 {% extends "layouts/app_base.html" %}
 
+{% block title %}Confirm Withdraw - Secure Bank{% endblock %}
+{% block page_title %}Withdraw{% endblock %}
+{% block page_subtitle %}Confirm your withdrawal{% endblock %}
+
 {% block content %}
 
 <div class="card">
@@ -23,6 +27,7 @@
 
         <form method="POST" action="{{ url_for('transactions.withdraw_confirm') }}">
 
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="amount" value="{{ amount }}">
 
             <button class="btn primary">

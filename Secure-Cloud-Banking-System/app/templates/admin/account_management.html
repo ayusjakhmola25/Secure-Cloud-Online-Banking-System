@@ -89,6 +89,21 @@
         transition: all 0.2s;
     }
     .btn-suspend:hover { background: #fef3c7; }
+    .btn-activate {
+        padding: 7px 14px;
+        background: #dcfce7;
+        border: 1px solid #22c55e;
+        color: #166534;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s;
+    }
+    .btn-activate:hover { background: #bbf7d0; }
     .btn-close {
         padding: 7px 14px;
         background: #ef4444;
@@ -142,14 +157,22 @@
                 </td>
                 <td>
                     <div class="action-group">
-                        {% if acc.status != 'suspended' and acc.status != 'closed' %}
+                        {% if acc.status == 'active' %}
                         <form action="{{ url_for('admin.suspend_account', account_id=acc.id) }}" method="POST" style="margin:0;" onsubmit="return confirm('Suspend this account?');">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn-suspend">
                                 <i class="fas fa-lock"></i> Suspend
                             </button>
                         </form>
+                        {% elif acc.status == 'suspended' %}
+                        <form action="{{ url_for('admin.activate_account', account_id=acc.id) }}" method="POST" style="margin:0;" onsubmit="return confirm('Re-activate this account?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-activate">
+                                <i class="fas fa-unlock"></i> Activate
+                            </button>
+                        </form>
                         {% endif %}
+                        
                         {% if acc.status != 'closed' %}
                         <form action="{{ url_for('admin.close_account', account_id=acc.id) }}" method="POST" style="margin:0;" onsubmit="return confirm('Permanently close this account?');">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

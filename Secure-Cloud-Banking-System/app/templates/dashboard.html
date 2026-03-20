@@ -13,7 +13,22 @@
     </div>
     <div class="balance">
       <div class="label">Available Balance</div>
-      <div class="value">${{ balance | default('5,000.00') }}</div>
+      <div class="value">${{ balance }}</div>
+    </div>
+  </div>
+
+  <!-- Financial Summary -->
+  <div class="card pad mt-1">
+    <h3 style="margin:0 0 12px 0; font-size:16px; font-weight:600;">Financial Summary</h3>
+    <div class="row-between mb-1">
+      <span class="muted text-xs">BALANCE</span>
+      <span class="muted text-xs">ACCOUNT TYPE</span>
+      <span class="muted text-xs">LAST LOGIN</span>
+    </div>
+    <div class="row-between">
+      <strong>${{ balance }}</strong>
+      <span>Savings</span>
+      <span class="muted">{{ last_login | default('—') }}</span>
     </div>
   </div>
 
@@ -24,7 +39,13 @@
     </div>
     <div class="row-between">
       <strong>{{ session.get('full_name', '—') }}</strong>
-      <span class="muted">{{ account_number | default('9898XXXX') }}</span>
+      <span class="muted" style="display:inline-flex; align-items:center; gap:8px;">
+        <span id="acc-num-display">{{ account_number | default('—') }}</span>
+        {% if full_account_number %}
+        <button type="button" onclick="toggleAccountNumber()" style="background:none;border:none;cursor:pointer;font-size:16px;padding:2px;" title="Show/Hide account number" id="eye-toggle-btn">👁</button>
+        <span id="acc-full" style="display:none;">{{ full_account_number }}</span>
+        {% endif %}
+      </span>
     </div>
   </div>
 
@@ -62,22 +83,22 @@
   <div class="grid cols-4 mt-2">
     <div class="card stat">
       <span class="label">Total Income</span>
-      <span class="value">${{ total_income | default('0.00') }}</span>
+      <span class="value">${{ total_income }}</span>
       <span class="hint"><i class="bi bi-graph-up-arrow text-success"></i></span>
     </div>
     <div class="card stat">
       <span class="label">Total Expenses</span>
-      <span class="value">${{ total_expenses | default('0.00') }}</span>
+      <span class="value">${{ total_expenses }}</span>
       <span class="hint"><i class="bi bi-graph-down-arrow text-warning"></i></span>
     </div>
     <div class="card stat">
       <span class="label">Transactions</span>
-      <span class="value">{{ transaction_count | default('0') }}</span>
+      <span class="value">{{ transaction_count }}</span>
       <span class="hint"><i class="bi bi-arrow-left-right text-brand"></i></span>
     </div>
     <div class="card stat">
       <span class="label">Net Flow</span>
-      <span class="value">${{ net_flow | default('0.00') }}</span>
+      <span class="value">${{ net_flow }}</span>
       <span class="hint"><i class="bi bi-arrow-repeat text-success"></i></span>
     </div>
   </div>
@@ -114,4 +135,22 @@
       {% endif %}
     </div>
   </div>
+
+  <script>
+    function toggleAccountNumber() {
+      var display = document.getElementById('acc-num-display');
+      var full = document.getElementById('acc-full');
+      var btn = document.getElementById('eye-toggle-btn');
+      if (!full) return;
+      if (display.dataset.showing === 'full') {
+        display.textContent = '{{ account_number | default("—") }}';
+        display.dataset.showing = 'masked';
+        btn.textContent = '👁';
+      } else {
+        display.textContent = full.textContent;
+        display.dataset.showing = 'full';
+        btn.textContent = '🔒';
+      }
+    }
+  </script>
 {% endblock %}

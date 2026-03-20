@@ -150,12 +150,21 @@ def verify_otp():
                 flash("Your account is suspended. You can't login.", "danger")
                 session.clear()
                 return redirect(url_for('auth.login'))
-            cur.close()
+            
+            # Update last_login timestamp
+            cur.execute("UPDATE users SET last_login = NOW() WHERE user_id = %s", (user_id,))
+            mysql.connection.commit()
+            
+            # Fetch the just-updated last_login
+            cur.execute("SELECT last_login FROM users WHERE user_id = %s", (user_id,))
+            last_login_row = cur.fetchone()
             
             session['user_id'] = user_id
             session['full_name'] = session.get('temp_full_name')
             session['email'] = session.get('temp_email')
             session['is_admin'] = False
+            if last_login_row and last_login_row[0]:
+                session['last_login'] = last_login_row[0].strftime("%b %d, %I:%M %p")
             
             session.pop('otp', None)
             session.pop('temp_user', None)
@@ -165,7 +174,6 @@ def verify_otp():
             session.pop('otp_attempts', None)
 
             # Auto create account if not exists
-            cur = mysql.connection.cursor()
             cur.execute("SELECT account_id FROM accounts WHERE user_id=%s", (user_id,))
             account = cur.fetchone()
             if not account:
@@ -199,4 +207,3 @@ def logout():
     session.clear()
     flash("Logged out successfully.", "info")
     return redirect(url_for("auth.login"))
-

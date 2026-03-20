@@ -10,11 +10,35 @@
     <h2 class="h2-mb-lg">Account summary</h2>
     <div class="grid gap-2">
       <div class="card pad card-inner">
-        <div class="muted text-xs">Account #{{ account_number | default('—') }}</div>
+        <div class="muted text-xs" style="display:flex; align-items:center; gap:8px;">
+            Account #<span id="acc-num-display">{{ account_number | default('—') }}</span>
+            {% if full_account_number %}
+            <button type="button" onclick="toggleAccountNumber()" style="background:none;border:none;cursor:pointer;font-size:14px;padding:0;" title="Show/Hide account number" id="eye-toggle-btn">👁</button>
+            <span id="acc-full" style="display:none;">{{ full_account_number }}</span>
+            {% endif %}
+        </div>
         <div class="balance-value">${{ balance | default('0.00') }}</div>
         <p class="muted m-0 text-sm">{{ account_type | default('Savings') }}</p>
       </div>
     </div>
     <p class="back-mt-lg"><a href="{{ url_for('dashboard.index') }}" class="muted link-plain">← Back to Dashboard</a></p>
   </div>
+
+  <script>
+    function toggleAccountNumber() {
+      var display = document.getElementById('acc-num-display');
+      var full = document.getElementById('acc-full');
+      var btn = document.getElementById('eye-toggle-btn');
+      if (!full) return;
+      if (display.dataset.showing === 'full') {
+        display.textContent = '{{ account_number | default("—") }}';
+        display.dataset.showing = 'masked';
+        btn.textContent = '👁';
+      } else {
+        display.textContent = full.textContent;
+        display.dataset.showing = 'full';
+        btn.textContent = '🔒';
+      }
+    }
+  </script>
 {% endblock %}

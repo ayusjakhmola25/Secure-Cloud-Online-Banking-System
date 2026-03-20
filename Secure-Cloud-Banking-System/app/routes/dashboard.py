@@ -22,76 +22,122 @@ def index():
     mysql = current_app.mysql
     cur = mysql.connection.cursor()
     try:
-        # Get user info and account balance
-        cur.execute("SELECT full_name FROM users WHERE user_id = %s", (user_id,))
+        # Get user info including last_login
+        cur.execute("SELECT full_name, last_login FROM users WHERE user_id = %s", (user_id,))
         user = cur.fetchone()
         full_name = user[0] if user else 'Unknown'
+        last_login = user[1].strftime('%b %d, %I:%M %p') if user and user[1] else '—'
 
+        # Get account info
         cur.execute("""
             SELECT account_number, balance FROM accounts 
             WHERE user_id = %s AND status = 'active'
         """, (user_id,))
         account = cur.fetchone()
+
         if account and account[0]:
             decrypted_acc = decrypt_aes256(account[0])
-            account_number = "XXXX" + decrypted_acc[-4:] if len(decrypted_acc) >= 4 else decrypted_acc
+            masked_account = "XXXX" + decrypted_acc[-4:] if len(decrypted_acc) >= 4 else decrypted_acc
+            full_account_number = decrypted_acc
         else:
-            account_number = None
-        balance = float(account[1]) if account and account[1] else 0.
+            masked_account = None
+            full_account_number = None
+        balance = float(account[1]) if account and account[1] else 0.0
 
-        # Recent transactions
-        cur.execute("""
-            SELECT type, amount, status, created_at FROM transactions 
-            WHERE account_id = (SELECT account_id FROM accounts WHERE user_id = %s LIMIT 1)
-            ORDER BY created_at DESC LIMIT 5
-        """, (user_id,))
+        # Get account_id for transaction queries
+        cur.execute("SELECT account_id FROM accounts WHERE user_id = %s LIMIT 1", (user_id,))
+        acc_row = cur.fetchone()
+        account_id = acc_row[0] if acc_row else None
+
+        # Compute financial stats from real data
+        total_income = 0.0
+        total_expenses = 0.0
+        transaction_count = 0
         recent_txns = []
-        for r in cur.fetchall():
-            recent_txns.append({
-                'type': r[0] or '—',
-                'amount': f"{float(r[1]):,.2f}",
-                'status': r[2] or '—',
-                'date': r[3].strftime('%b %d, %Y') if r[3] else '—'
-            })
+
+        if account_id:
+            # Total income (deposits)
+            cur.execute("""
+                SELECT COALESCE(SUM(amount), 0) FROM transactions 
+                WHERE account_id = %s AND type = 'deposit' AND status = 'completed'
+            """, (account_id,))
+            total_income = float(cur.fetchone()[0])
+
+            # Total expenses (withdrawals + sent transfers)
+            cur.execute("""
+                SELECT COALESCE(SUM(amount), 0) FROM transactions 
+                WHERE account_id = %s AND type IN ('withdraw', 'transfer') AND status = 'completed'
+            """, (account_id,))
+            total_expenses = float(cur.fetchone()[0])
+
+            # Transaction count
+            cur.execute("SELECT COUNT(*) FROM transactions WHERE account_id = %s", (account_id,))
+            transaction_count = cur.fetchone()[0]
+
+            # Recent transactions with descriptions
+            cur.execute("""
+                SELECT type, amount, status, created_at, description FROM transactions 
+                WHERE account_id = %s
+                ORDER BY created_at DESC LIMIT 5
+            """, (account_id,))
+            for r in cur.fetchall():
+                recent_txns.append({
+                    'type': r[0] or '—',
+                    'amount': f"${float(r[1]):,.2f}",
+                    'status': r[2] or '—',
+                    'date': r[3].strftime('%b %d, %Y') if r[3] else '—',
+                    'description': r[4] if r[4] else r[0].capitalize() if r[0] else '—'
+                })
+
+        net_flow = total_income - total_expenses
+
     finally:
         cur.close()
+
     return render_template('dashboard.html', 
                           full_name=full_name, 
-                          account_number=account_number,
+                          account_number=masked_account,
+                          full_account_number=full_account_number,
                           balance=f"{balance:,.2f}",
-                          recent_txns=recent_txns,
+                          last_login=last_login,
+                          total_income=f"{total_income:,.2f}",
+                          total_expenses=f"{total_expenses:,.2f}",
+                          transaction_count=transaction_count,
+                          net_flow=f"{net_flow:,.2f}",
+                          recent_transactions=recent_txns,
                           active_page='dashboard')
 
 @dashboard_bp.route('/accounts')
 @login_required
 def accounts():
-
     user_id = session['user_id']
     mysql = current_app.mysql
     cur = mysql.connection.cursor()
 
     cur.execute("""
-        SELECT account_number,balance
+        SELECT account_number, balance
         FROM accounts
         WHERE user_id=%s
         LIMIT 1
-    """,(user_id,))
+    """, (user_id,))
 
     account = cur.fetchone()
-
     cur.close()
 
     if account:
         decrypted_acc = decrypt_aes256(account[0]) if account[0] else ""
-        account_number = "XXXX" + decrypted_acc[-4:] if len(decrypted_acc) >= 4 else decrypted_acc
+        masked_account = "XXXX" + decrypted_acc[-4:] if len(decrypted_acc) >= 4 else decrypted_acc
+        full_account_number = decrypted_acc
         balance = f"{float(account[1]):,.2f}"
     else:
-        account_number = "—"
+        masked_account = "—"
+        full_account_number = ""
         balance = "0.00"
 
     return render_template(
         "accounts.html",
-        account_number=account_number,
+        account_number=masked_account,
+        full_account_number=full_account_number,
         balance=balance,
         account_type="Savings",
         active_page="accounts"
@@ -109,7 +155,6 @@ def profile():
         if full_name:
             cur = mysql.connection.cursor()
             try:
-                # We also need to encrypt phone if we are storing it encrypted
                 from app.utils.crypto import encrypt_aes256
                 enced_phone = encrypt_aes256(phone)
                 cur.execute("UPDATE users SET full_name = %s, phone = %s WHERE user_id = %s", (full_name, enced_phone, user_id))
@@ -124,14 +169,12 @@ def profile():
 
     cur = mysql.connection.cursor()
 
-    # user info
     cur.execute(
         "SELECT full_name, email, phone FROM users WHERE user_id=%s",
         (user_id,)
     )
     user = cur.fetchone()
 
-    # account info
     cur.execute(
         "SELECT account_number, created_at FROM accounts WHERE user_id=%s LIMIT 1",
         (user_id,)
@@ -162,44 +205,4 @@ def profile():
         account_number=account_number,
         account_created=account_created,
         active_page="profile"
-    )
-
-@dashboard_bp.route('/deposit', methods=['GET', 'POST'])
-@login_required
-def deposit():
-    user_id = session['user_id']
-    if request.method == 'POST':
-        amount = request.form.get('amount')
-        if amount:
-            try:
-                amount = float(amount)
-                if amount > 0:
-                    mysql = current_app.mysql
-                    cur = mysql.connection.cursor()
-                    # Assume first active account
-                    cur.execute("SELECT account_id FROM accounts WHERE user_id = %s AND status = 'active' LIMIT 1", (user_id,))
-                    account = cur.fetchone()
-                    if account:
-                        account_id = account[0]
-                        cur.execute("""
-                            INSERT INTO transactions (account_id, type, amount, status) 
-                            VALUES (%s, 'deposit', %s, 'completed')
-                        """, (account_id, amount))
-                        cur.execute("UPDATE accounts SET balance = balance + %s WHERE account_id = %s", (amount, account_id))
-                        mysql.connection.commit()
-                        cur.close()
-                        flash(f"Deposited ${amount:,.2f} successfully!", "success")
-                        return redirect(url_for('dashboard.index'))
-                    cur.close()
-                flash("Invalid amount or no active account.", "danger")
-            except ValueError:
-                flash("Invalid amount.", "danger")
-    return render_template('deposit.html', active_page='deposit')
-
-@dashboard_bp.route('/withdraw')
-@login_required
-def withdraw():
-    return render_template(
-        "withdraw.html",
-        active_page="withdraw"
     )

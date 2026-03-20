@@ -159,9 +159,14 @@ def accounts():
     """)
     all_accounts = []
     for r in cur.fetchall():
+        if r[1]:
+            decrypted = decrypt_aes256(r[1])
+            masked = "XXXX" + decrypted[-3:] if len(decrypted) >= 3 else decrypted
+        else:
+            masked = '-'
         all_accounts.append({
             'id': r[0],
-            'account_number': decrypt_aes256(r[1]) if r[1] else '-',
+            'account_number': masked,
             'balance': f"{float(r[2]):,.2f}",
             'status': r[3],
             'holder': r[4],
@@ -179,6 +184,17 @@ def suspend_account(account_id):
     mysql.connection.commit()
     cur.close()
     flash("Account suspended successfully.", "success")
+    return redirect(url_for('admin.accounts'))
+
+@admin_bp.route('/accounts/<int:account_id>/activate', methods=['POST'])
+@admin_required
+def activate_account(account_id):
+    mysql = current_app.mysql
+    cur = mysql.connection.cursor()
+    cur.execute("UPDATE accounts SET status = 'active' WHERE account_id = %s", (account_id,))
+    mysql.connection.commit()
+    cur.close()
+    flash("Account activated successfully.", "success")
     return redirect(url_for('admin.accounts'))
 
 @admin_bp.route('/accounts/<int:account_id>/close', methods=['POST'])
@@ -203,7 +219,9 @@ def transactions():
     status_filter = request.args.get('status', 'All Status')
     
     query = """
-        SELECT t.transaction_id, t.type, t.amount, t.status, t.created_at, u.email 
+        SELECT t.transaction_id, t.type, t.amount, t.status, t.created_at, 
+               u.email, u.full_name, t.description,
+               t.sender_account_id, t.receiver_account_id
         FROM transactions t
         JOIN accounts a ON t.account_id = a.account_id
         JOIN users u ON a.user_id = u.user_id
@@ -212,8 +230,8 @@ def transactions():
     params = []
     
     if search:
-        query += " AND (t.transaction_id LIKE %s OR u.email LIKE %s)"
-        params.extend([f"%{search}%", f"%{search}%"])
+        query += " AND (t.transaction_id LIKE %s OR u.email LIKE %s OR u.full_name LIKE %s)"
+        params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
     if type_filter != 'All Types':
         query += " AND t.type = %s"
         params.append(type_filter.lower())
@@ -224,16 +242,42 @@ def transactions():
     query += " ORDER BY t.created_at DESC"
     
     cur.execute(query, tuple(params))
+    rows = cur.fetchall()
+
+    # Build a map of account_id -> user info for sender/receiver lookup
+    account_user_map = {}
+    cur.execute("""
+        SELECT a.account_id, u.full_name, u.email 
+        FROM accounts a JOIN users u ON a.user_id = u.user_id
+    """)
+    for arow in cur.fetchall():
+        account_user_map[arow[0]] = {'name': arow[1], 'email': arow[2]}
+
     all_txns = []
-    for r in cur.fetchall():
+    for r in rows:
+        sender_info = None
+        receiver_info = None
+        if r[8]:  # sender_account_id
+            sender_info = account_user_map.get(r[8])
+        if r[9]:  # receiver_account_id
+            receiver_info = account_user_map.get(r[9])
+
         all_txns.append({
             'id': r[0],
             'type': r[1],
             'amount': f"{float(r[2]):,.2f}",
             'status': r[3],
             'date': r[4].strftime('%b %d, %Y %H:%M') if r[4] else '—',
-            'email': r[5]
+            'email': r[5],
+            'name': r[6],
+            'description': r[7] or '',
+            'sender_name': sender_info['name'] if sender_info else '—',
+            'sender_email': sender_info['email'] if sender_info else '—',
+            'receiver_name': receiver_info['name'] if receiver_info else '—',
+            'receiver_email': receiver_info['email'] if receiver_info else '—',
         })
     cur.close()
     
-    return render_template('admin/transaction_monitoring.html', transactions=all_txns, active_page='transactions', search=search, type_filter=type_filter, status_filter=status_filter)
+    return render_template('admin/transaction_monitoring.html', 
+                           transactions=all_txns, active_page='transactions', 
+                           search=search, type_filter=type_filter, status_filter=status_filter)

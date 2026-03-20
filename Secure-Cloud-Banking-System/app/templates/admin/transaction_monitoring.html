@@ -96,6 +96,12 @@
         color: #9ca3af;
         font-size: 14px;
     }
+    .partp-info {
+        font-size: 12px;
+        line-height: 1.2;
+    }
+    .partp-info strong { display: block; color: #374151; }
+    .partp-info span { color: #6b7280; }
 </style>
 {% endblock %}
 
@@ -103,7 +109,7 @@
 <form method="GET" action="{{ url_for('admin.transactions') }}" id="filterForm">
     <div class="filter-bar">
         <i class="fas fa-search"></i>
-        <input type="text" name="search" class="search-input" placeholder="Search by transaction ID or email..." value="{{ search }}">
+        <input type="text" name="search" class="search-input" placeholder="Search by ID, email, or name..." value="{{ search }}">
         <div class="divider"></div>
         <select name="type" class="filter-select" onchange="document.getElementById('filterForm').submit();">
             <option value="All Types" {% if type_filter == 'All Types' %}selected{% endif %}>All Types</option>
@@ -128,9 +134,11 @@
     <table>
         <thead>
             <tr>
-                <th>Transaction ID</th>
-                <th>Account Email</th>
-                <th>Type</th>
+                <th>ID</th>
+                <th>Main Participant</th>
+                <th>Type / Description</th>
+                <th>Sender</th>
+                <th>Receiver</th>
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Date</th>
@@ -140,9 +148,29 @@
             {% for txn in transactions %}
             <tr>
                 <td class="txn-id">{{ txn.id }}</td>
-                <td style="color: #6b7280;">{{ txn.email }}</td>
+                <td class="partp-info">
+                    <strong>{{ txn.name }}</strong>
+                    <span>{{ txn.email }}</span>
+                </td>
                 <td>
                     <span class="type-badge type-{{ txn.type }}">{{ txn.type | capitalize }}</span>
+                    <div style="font-size:11px; color:#6b7280; margin-top:4px;">{{ txn.description }}</div>
+                </td>
+                <td class="partp-info">
+                    {% if txn.type == 'transfer' %}
+                        <strong>{{ txn.sender_name }}</strong>
+                        <span>{{ txn.sender_email }}</span>
+                    {% else %}
+                        <span class="muted">—</span>
+                    {% endif %}
+                </td>
+                <td class="partp-info">
+                    {% if txn.type == 'transfer' or txn.type == 'deposit' %}
+                        <strong>{{ txn.receiver_name }}</strong>
+                        <span>{{ txn.receiver_email }}</span>
+                    {% else %}
+                        <span class="muted">—</span>
+                    {% endif %}
                 </td>
                 <td class="amount-val">${{ txn.amount }}</td>
                 <td>
