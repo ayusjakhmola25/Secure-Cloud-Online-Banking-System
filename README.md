@@ -128,14 +128,6 @@ admin_id (PK), full_name, email, password_hash
 - ⚠️ Transfer: Add recipient validation/balance check.
 - Next: Rate limiting, 2FA, HTTPS.
 
-## 🐛 Known Issues / TODO
-
-See [TODO.md](TODO.md):
-- Stabilize SECRET_KEY.
-- Full transfer recipient validation.
-- Admin dashboard.
-- Pagination on history.
-- Deployment (Docker/Heroku).
 
 ## 🤝 Contributing
 
