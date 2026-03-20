@@ -1,0 +1,24 @@
+{% extends "layouts/auth_base.html" %}
+
+{% block title %}Verify OTP - Secure Bank{% endblock %}
+
+{% block content %}
+<form class="auth-form" method="POST" action="{{ url_for('auth.verify_otp') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  
+  <p class="text-center" style="margin-bottom: 20px;">
+    An OTP has been sent to your email address. It is valid for 5 minutes.
+  </p>
+
+  <div class="field">
+    <label class="field-label">One Time Password</label>
+    <input class="input" type="text" name="otp" placeholder="Enter 6-digit OTP" required>
+  </div>
+  
+  <button class="btn-submit" type="submit">Verify</button>
+</form>
+{% endblock %}
+
+{% block auth_footer %}
+<p class="m-0"><a href="{{ url_for('auth.login') }}">Back to Login</a></p>
+{% endblock %}

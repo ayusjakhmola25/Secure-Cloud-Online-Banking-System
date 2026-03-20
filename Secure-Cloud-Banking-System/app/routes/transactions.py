@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, flash
 from functools import wraps
 from datetime import datetime
+from app.utils.crypto import hash_sha256, encrypt_aes256, decrypt_aes256
 
 transactions_bp = Blueprint('transactions', __name__)
 
@@ -37,7 +38,7 @@ def index():
                 'amount': f"{float(r[2]):,.2f}",
                 'status': r[3] or '—',
                 'date': r[4].strftime('%b %d, %Y %H:%M') if r[4] else '—',
-                'account': r[5] or '—'
+                'account': decrypt_aes256(r[5]) if r[5] else '—'
             })
     finally:
         cur.close()
@@ -112,16 +113,45 @@ def transfer():
                     from_account = cur.fetchone()
                     if from_account and float(from_account[1]) >= amount:
                         from_account_id = from_account[0]
-                        # TODO: Verify to_account exists
+                        
+                        # Verify to_account exists
+                        cur.execute("SELECT account_id, account_number FROM accounts WHERE status = 'active'")
+                        all_accs = cur.fetchall()
+                        to_account_id = None
+                        ence_to = None
+                        
+                        for acc_id, enc_num in all_accs:
+                            if enc_num and decrypt_aes256(enc_num) == to_account:
+                                to_account_id = acc_id
+                                ence_to = enc_num
+                                break
+                                
+                        if not to_account_id:
+                            cur.close()
+                            flash("Invalid recipient account number. Please verify and try again.", "danger")
+                            return redirect(url_for('transactions.transfer'))
+
+                        thash = hash_sha256(f"{from_account_id}-transfer-{amount}-{datetime.now().timestamp()}")
                         cur.execute("""
-                            INSERT INTO transactions (account_id, type, amount, status, to_account) 
-                            VALUES (%s, 'transfer', %s, 'pending', %s)
-                        """, (from_account_id, amount, to_account))
-                        # Update balance
+                            INSERT INTO transactions (account_id, type, amount, status, to_account, transaction_hash) 
+                            VALUES (%s, 'transfer', %s, 'completed', %s, %s)
+                        """, (from_account_id, amount, ence_to, thash))
+                        
+                        # Add a corresponding deposit for the recipient
+                        thash_recv = hash_sha256(f"{to_account_id}-transfer_recv-{amount}-{datetime.now().timestamp()}")
+                        from_enc = encrypt_aes256("Transfer from " + str(user_id))
+                        cur.execute("""
+                            INSERT INTO transactions (account_id, type, amount, status, to_account, transaction_hash)
+                            VALUES (%s, 'deposit', %s, 'completed', %s, %s)
+                        """, (to_account_id, amount, from_enc, thash_recv))
+                        
+                        # Update balances
                         cur.execute("UPDATE accounts SET balance = balance - %s WHERE account_id = %s", (amount, from_account_id))
+                        cur.execute("UPDATE accounts SET balance = balance + %s WHERE account_id = %s", (amount, to_account_id))
+                        
                         mysql.connection.commit()
                         cur.close()
-                        flash(f"Transfer of ${amount:,.2f} to {to_account} initiated.", "success")
+                        flash(f"Transfer of ${amount:,.2f} to {to_account} completed successfully.", "success")
                         return redirect(url_for('transactions.index'))
 
                     cur.close()
@@ -165,10 +195,11 @@ def deposit_confirm():
 
     if account:
         account_id = account[0]
+        thash = hash_sha256(f"{account_id}-deposit-{amount}-{datetime.now().timestamp()}")
 
         cur.execute(
-            "INSERT INTO transactions (account_id,type,amount,status) VALUES (%s,'deposit',%s,'completed')",
-            (account_id, amount)
+            "INSERT INTO transactions (account_id,type,amount,status,transaction_hash) VALUES (%s,'deposit',%s,'completed',%s)",
+            (account_id, amount, thash)
         )
 
         cur.execute(
@@ -220,10 +251,11 @@ def withdraw_confirm():
     if account and float(account[1]) >= float(amount):
 
         account_id = account[0]
+        thash = hash_sha256(f"{account_id}-withdraw-{amount}-{datetime.now().timestamp()}")
 
         cur.execute(
-            "INSERT INTO transactions (account_id,type,amount,status) VALUES (%s,'withdraw',%s,'completed')",
-            (account_id, amount)
+            "INSERT INTO transactions (account_id,type,amount,status,transaction_hash) VALUES (%s,'withdraw',%s,'completed',%s)",
+            (account_id, amount, thash)
         )
 
         cur.execute(

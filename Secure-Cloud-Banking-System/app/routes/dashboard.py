@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, flash
 from functools import wraps
 from datetime import datetime
+from app.utils.crypto import decrypt_aes256
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -31,7 +32,11 @@ def index():
             WHERE user_id = %s AND status = 'active'
         """, (user_id,))
         account = cur.fetchone()
-        account_number = account[0] if account else None
+        if account and account[0]:
+            decrypted_acc = decrypt_aes256(account[0])
+            account_number = "XXXX" + decrypted_acc[-4:] if len(decrypted_acc) >= 4 else decrypted_acc
+        else:
+            account_number = None
         balance = float(account[1]) if account and account[1] else 0.
 
         # Recent transactions
@@ -77,7 +82,8 @@ def accounts():
     cur.close()
 
     if account:
-        account_number = account[0]
+        decrypted_acc = decrypt_aes256(account[0]) if account[0] else ""
+        account_number = "XXXX" + decrypted_acc[-4:] if len(decrypted_acc) >= 4 else decrypted_acc
         balance = f"{float(account[1]):,.2f}"
     else:
         account_number = "—"
@@ -91,37 +97,63 @@ def accounts():
         active_page="accounts"
     )
 
-@dashboard_bp.route('/profile')
+@dashboard_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-
     user_id = session['user_id']
     mysql = current_app.mysql
+    
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        phone = request.form.get('phone', '').strip()
+        if full_name:
+            cur = mysql.connection.cursor()
+            try:
+                # We also need to encrypt phone if we are storing it encrypted
+                from app.utils.crypto import encrypt_aes256
+                enced_phone = encrypt_aes256(phone)
+                cur.execute("UPDATE users SET full_name = %s, phone = %s WHERE user_id = %s", (full_name, enced_phone, user_id))
+                mysql.connection.commit()
+                session['full_name'] = full_name
+                flash("Profile updated successfully.", "success")
+            except Exception as e:
+                flash(f"Error updating profile: {e}", "danger")
+            finally:
+                cur.close()
+        return redirect(url_for('dashboard.profile'))
+
     cur = mysql.connection.cursor()
 
     # user info
     cur.execute(
-        "SELECT full_name,email,phone FROM users WHERE user_id=%s",
+        "SELECT full_name, email, phone FROM users WHERE user_id=%s",
         (user_id,)
     )
     user = cur.fetchone()
 
     # account info
     cur.execute(
-        "SELECT account_number,created_at FROM accounts WHERE user_id=%s LIMIT 1",
+        "SELECT account_number, created_at FROM accounts WHERE user_id=%s LIMIT 1",
         (user_id,)
     )
     account = cur.fetchone()
-
     cur.close()
 
+    from app.utils.crypto import decrypt_aes256
+    decrypted_phone = decrypt_aes256(user[2]) if user and user[2] else ""
+    
     profile_data = {
         "full_name": user[0],
         "email": user[1],
-        "phone": user[2]
+        "phone": decrypted_phone
     }
 
-    account_number = account[0] if account else "—"
+    if account and account[0]:
+        decrypted_acc = decrypt_aes256(account[0])
+        account_number = "XXXX" + decrypted_acc[-4:] if len(decrypted_acc) >= 4 else decrypted_acc
+    else:
+        account_number = "—"
+        
     account_created = account[1] if account else None
 
     return render_template(

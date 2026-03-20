@@ -1,0 +1,163 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Transaction Monitoring - Secure Bank{% endblock %}
+{% block topbar_title %}TransactionMonitoring{% endblock %}
+{% block page_title %}Transaction Monitoring{% endblock %}
+{% block page_subtitle %}Track and analyze all system transactions{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-bar {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .filter-bar i { color: #9ca3af; flex-shrink: 0; }
+    .search-input {
+        border: none;
+        outline: none;
+        flex: 1;
+        font-size: 14px;
+        font-family: inherit;
+    }
+    .divider { width: 1px; height: 24px; background: #e5e7eb; }
+    .filter-select {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 13px;
+        font-family: inherit;
+        color: #374151;
+        outline: none;
+        background: #f9fafb;
+    }
+    .table-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #f3f4f6;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+        text-align: left;
+        padding: 16px 24px;
+        background: #f9fafb;
+        color: #4b5563;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    td {
+        padding: 16px 24px;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    .txn-id {
+        font-family: monospace;
+        font-size: 13px;
+        color: #4b5563;
+        font-weight: 500;
+    }
+    .type-badge {
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+    .type-withdraw { background: #fee2e2; color: #991b1b; }
+    .type-deposit  { background: #dcfce7; color: #166534; }
+    .type-transfer { background: #dbeafe; color: #1e40af; }
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+    .status-completed { background: #dcfce7; color: #166534; }
+    .status-pending   { background: #fef9c3; color: #854d0e; }
+    .status-failed    { background: #fee2e2; color: #991b1b; }
+    .amount-val { font-weight: 600; color: #111827; }
+    .no-data {
+        padding: 48px;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="GET" action="{{ url_for('admin.transactions') }}" id="filterForm">
+    <div class="filter-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" name="search" class="search-input" placeholder="Search by transaction ID or email..." value="{{ search }}">
+        <div class="divider"></div>
+        <select name="type" class="filter-select" onchange="document.getElementById('filterForm').submit();">
+            <option value="All Types" {% if type_filter == 'All Types' %}selected{% endif %}>All Types</option>
+            <option value="Deposit"  {% if type_filter == 'Deposit'  %}selected{% endif %}>Deposit</option>
+            <option value="Withdraw" {% if type_filter == 'Withdraw' %}selected{% endif %}>Withdraw</option>
+            <option value="Transfer" {% if type_filter == 'Transfer' %}selected{% endif %}>Transfer</option>
+        </select>
+        <select name="status" class="filter-select" onchange="document.getElementById('filterForm').submit();">
+            <option value="All Status"  {% if status_filter == 'All Status'  %}selected{% endif %}>All Status</option>
+            <option value="Completed"   {% if status_filter == 'Completed'   %}selected{% endif %}>Completed</option>
+            <option value="Pending"     {% if status_filter == 'Pending'     %}selected{% endif %}>Pending</option>
+            <option value="Failed"      {% if status_filter == 'Failed'      %}selected{% endif %}>Failed</option>
+        </select>
+        <button type="submit" style="padding: 7px 14px; background: #6b21a8; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;">
+            <i class="fas fa-filter"></i> Filter
+        </button>
+    </div>
+</form>
+
+<div class="table-card">
+    {% if transactions %}
+    <table>
+        <thead>
+            <tr>
+                <th>Transaction ID</th>
+                <th>Account Email</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for txn in transactions %}
+            <tr>
+                <td class="txn-id">{{ txn.id }}</td>
+                <td style="color: #6b7280;">{{ txn.email }}</td>
+                <td>
+                    <span class="type-badge type-{{ txn.type }}">{{ txn.type | capitalize }}</span>
+                </td>
+                <td class="amount-val">${{ txn.amount }}</td>
+                <td>
+                    <span class="status-badge status-{{ txn.status }}">{{ txn.status }}</span>
+                </td>
+                <td style="color: #6b7280;">{{ txn.date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="no-data">
+        <i class="fas fa-inbox" style="font-size: 32px; margin-bottom: 12px; display: block;"></i>
+        No transactions found matching your filters.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
