@@ -1,101 +1,126 @@
 # Secure Cloud Online Banking System
 
-The Secure Cloud Online Banking System is a Flask-based web application that demonstrates core digital banking workflows with a MySQL database and security-focused application components. Users can register, authenticate through password and email OTP verification, view account information, and perform banking operations such as deposits, withdrawals, and account-to-account transfers. An administrative area provides user, account, and transaction oversight.
-
-This project is intended for learning and demonstration. It should not be treated as production-ready banking software without a security review, stronger transaction controls, operational hardening, and deployment-specific testing.
-
-## Overview
-
-The Secure Cloud Online Banking System provides a web-based environment for exploring how common banking operations can be organized in a database-backed application. Customers can create an account, sign in with email OTP verification, review account balances and transaction history, and use deposit, withdrawal, and transfer workflows. Administrators have a separate area for reviewing users, managing account status, and monitoring transactions.
-
-The application is built with Python and Flask, uses MySQL for persistent records, and renders its interface with HTML templates, CSS, and JavaScript. Supporting security components include bcrypt-based password hashing, AES-GCM encryption utilities for selected sensitive fields, and Flask-WTF CSRF protection. These are educational implementations and do not by themselves make the application suitable for production banking.
-
-The repository also includes database setup and schema-update utilities to help prepare the local development environment. Configuration and database scripts should be reviewed before use, and credentials must be supplied securely rather than stored in source code.
-
-<!-- Project screenshots: add these JPEG files to the repository's images/ directory.
-     The width attributes control how large the images appear on GitHub. -->
-
 <p align="center">
   <img src="images/dashboard.jpeg" alt="Secure Cloud Banking Dashboard" width="900" />
 </p>
 
-<p align="center">
-  <img src="images/login.jpeg" alt="Secure Cloud Banking Login Page" width="700" />
-</p>
+## Overview
 
-<p align="center">
-  <img src="images/transactions.jpeg" alt="Banking Transactions Page" width="900" />
-</p>
+The Secure Cloud Online Banking System is a Flask-based web application that demonstrates common digital banking workflows in a database-backed environment.
 
-<p align="center">
-  <img src="images/admin-dashboard.jpeg" alt="Administrator Dashboard" width="900" />
-</p>
+Customers can register, sign in using password and email OTP verification, review account information, and perform operations such as deposits, withdrawals, and account-to-account transfers. An administrative area provides views for user management, account status management, and transaction monitoring.
+
+Built with Python, Flask, MySQL, Jinja2 templates, HTML, CSS, and JavaScript, the project brings together application routing, relational data storage, authentication flows, and selected security controls in one learning-oriented application.
+
+**Project status:** This is an educational demonstration, not production-ready banking software. It must not be used with real financial accounts or sensitive customer data without professional security review, transaction-safety improvements, and deployment hardening.
+
+---
 
 ## Problem Statement
 
-Online banking applications handle sensitive personal and financial information. A banking application must protect account data, verify user access, preserve transaction records, and provide appropriate oversight of accounts and transactions.
+Online banking applications handle sensitive personal information and financial records. A banking system must control access, protect stored data, maintain reliable transaction records, and give authorized administrators appropriate oversight.
 
-This project explores these requirements through a web application that combines authentication, database-backed banking workflows, data encryption utilities, password hashing, CSRF protection, and an administrative dashboard.
+Without carefully designed controls:
+
+- Unauthorized users may access account information.
+- Weak transaction validation can lead to incorrect balances.
+- Poor session and authentication handling can expose accounts.
+- Inconsistent database operations can create unreliable transaction records.
+- Administrators may lack a clear view of users, accounts, and transaction activity.
+
+This project explores these challenges through a web application that combines customer authentication, email OTP verification, account workflows, MySQL persistence, security utilities, and administrative views.
+
+---
+
+## Real-World Applications
+
+### Digital Banking Concepts
+
+- Customer registration and account access
+- Account balance and transaction-history views
+- Deposit, withdrawal, and transfer workflow demonstrations
+
+### Financial Application Development
+
+- Modeling users, accounts, and transactions in a relational database
+- Organizing business logic through Flask route blueprints
+- Separating customer workflows from administrative workflows
+
+### Application Security Learning
+
+- Password hashing and login verification
+- Email OTP-based verification flows
+- CSRF protection and session-based access checks
+- Encryption concepts for selected sensitive fields
+
+### Academic and Development Labs
+
+- Flask and MySQL integration practice
+- Secure coding and authorization review
+- Testing database-backed workflows
+- Understanding security limitations in prototype applications
+
+These are learning and demonstration use cases; the current project is not a certified financial platform.
+
+---
 
 ## Key Features
 
-### User Authentication and Accounts
+### Customer Authentication
 
-- User registration with a profile and automatically created account.
-- Login using an email address and password.
-- Email-based one-time password (OTP) verification with a five-minute validity period.
-- Session-based login and logout.
-- Account status checks in relevant authentication flows.
-- Profile and account information pages.
+- User registration and account creation
+- Login with email and password
+- Email-based one-time password (OTP) verification with a five-minute validity period
+- Session-based login and logout
+- Profile and account information pages
 
 ### Banking Operations
 
-- Account balance and summary dashboard.
-- Deposit and withdrawal workflows.
-- Transfers to another account using the recipient's email address or account number.
-- Transaction list and transaction history.
-- Transaction descriptions, timestamps, and status records.
-- SHA-256 transaction digest generation in transaction workflows.
+- Customer dashboard with account summary
+- Deposit and withdrawal workflows
+- Transfers to another account using recipient details
+- Transaction list and history
+- Transaction descriptions, timestamps, and status records
+- SHA-256 transaction digest generation in transaction workflows
 
-### Administrative Functions
+### Administrative Dashboard
 
-- Separate administrator login flow with role checking.
-- Overview of registered users, accounts, balances, deposits, and transactions.
-- User listing and user deletion.
-- Account listing and account status management, including suspend, activate, and close actions.
-- Transaction monitoring with search and type/status filters.
-- Visibility of high-value transactions for review.
+- Separate administrator login flow with role checks
+- Overview of users, accounts, balances, deposits, and transactions
+- User listing and user deletion
+- Account status management, including suspend, activate, and close actions
+- Transaction monitoring with search and type/status filters
+- Visibility of high-value transactions for review
 
 ### Security Components
 
-- Bcrypt password hashing, combined with a SHA-256 preprocessing step in the current authentication implementation.
-- AES-GCM encryption and decryption utilities for sensitive values such as phone numbers and account numbers.
-- Flask-WTF CSRF protection initialized for the application.
-- Parameterized SQL queries in application database operations.
-- Session-based access checks for user and administrator pages.
+- Bcrypt password hashing, with SHA-256 preprocessing in the current authentication implementation
+- AES-GCM encryption/decryption utilities for selected sensitive values
+- Flask-WTF CSRF protection
+- Parameterized SQL queries in application database operations
+- Session-based access checks for customer and administrator pages
 
-These features describe the current code, not a claim of a completed security audit. A SHA-256 transaction digest alone is not a complete tamper-proof audit system, and the application requires further review before handling real money or personal information.
+**Security clarification:** These components do not establish that the application is secure or production-ready. A SHA-256 digest stored with a transaction is not, by itself, a tamper-proof audit system.
 
-## Technologies Used
+---
 
-| Component | Technology | Purpose |
-|---|---|---|
-| Language | Python | Application logic |
-| Web framework | Flask 3.1.x | Routing, sessions, and application setup |
-| Database | MySQL | Users, accounts, and transaction records |
-| Database integration | Flask-MySQLdb / mysqlclient | MySQL connectivity |
-| Templates | Jinja2, HTML, CSS, JavaScript | Server-rendered interface |
-| Password security | bcrypt and SHA-256 preprocessing | Password verification |
-| Data encryption | AES-GCM via Python cryptography package | Encrypting selected sensitive fields |
-| Form protection | Flask-WTF CSRFProtect | CSRF token validation |
-| Configuration | python-dotenv | Loading local environment configuration |
-| Email verification | Flask-Mail with Gmail SMTP configuration | Sending login OTPs |
+## Impact and Benefits
 
-Dependency versions are defined in `requirements.txt`. The repository currently uses MySQL on localhost in its application configuration; AWS deployment components mentioned in earlier project descriptions should be configured and verified separately before use.
+The project provides a practical environment for learning how common banking features fit together. The table below describes the intended learning and application value; it does not claim measured performance improvements.
+
+| Area | Project Value |
+|---|---|
+| Authentication | Demonstrates password login and email OTP verification |
+| Account workflows | Models deposits, withdrawals, and transfers |
+| Data management | Stores users, accounts, and transaction records in MySQL |
+| Application structure | Uses Flask application setup and route blueprints |
+| Security concepts | Demonstrates password hashing, encryption utilities, and CSRF protection |
+| Administration | Provides views for user, account, and transaction oversight |
+| Security awareness | Documents limitations and areas requiring hardening |
+
+---
 
 ## System Architecture
-
-The architecture below shows how customer and administrator requests move through the Flask application, its route blueprints, shared security helpers, MySQL data layer, and email OTP service.
 
 <p align="center">
   <img src="images/system-architecture.svg" alt="Secure Cloud Online Banking System Architecture" width="1100" />
@@ -103,26 +128,29 @@ The architecture below shows how customer and administrator requests move throug
 
 ### Architecture Components
 
-- **Presentation layer:** Browser-based customer and administrator interfaces rendered with HTML, CSS, JavaScript, and Jinja2 templates.
-- **Application entry point:** `run.py` starts the Flask application, and `create_app()` configures the application and registers its route blueprints.
-- **Authentication:** Registration, password verification, email OTP verification, and session creation are handled in `app/routes/auth.py`.
-- **Customer dashboard:** Account details, profile information, balance summaries, and recent activity are handled in `app/routes/dashboard.py`.
-- **Transaction processing:** Deposit, withdrawal, transfer, and transaction-history workflows are handled in `app/routes/transactions.py`.
-- **Administration:** Role-checked administrator views support user management, account status management, and transaction monitoring in `app/routes/admin.py`.
+- **Presentation layer:** Browser interface rendered with HTML, CSS, JavaScript, and Jinja2 templates.
+- **Application entry point:** `run.py` starts the Flask application; `create_app()` configures it and registers route blueprints.
+- **Authentication module:** `app/routes/auth.py` handles registration, login, OTP verification, and logout.
+- **Customer dashboard module:** `app/routes/dashboard.py` provides dashboard, account, and profile pages.
+- **Transaction module:** `app/routes/transactions.py` handles deposit, withdrawal, transfer, and history workflows.
+- **Administration module:** `app/routes/admin.py` provides administrator views for users, accounts, and transactions.
 - **Data layer:** MySQL stores user, account, and transaction records.
-- **Security utilities:** `app/utils/crypto.py` provides AES-GCM encryption/decryption helpers and a SHA-256 helper. Bcrypt is used for password-hash verification, and Flask-WTF initializes CSRF protection.
+- **Security utilities:** `app/utils/crypto.py` provides AES-GCM encryption/decryption and a SHA-256 helper. Bcrypt and Flask-WTF are used elsewhere in the application.
 - **Email service:** Flask-Mail sends login OTPs through the configured SMTP provider.
 
 ### How the System Works
 
 1. A customer or administrator opens the web application in a browser.
 2. Flask routes the request to the appropriate authentication, dashboard, transaction, or admin blueprint.
-3. Login checks the submitted credentials. For customer login, the application sends an email OTP and verifies it before completing the session.
+3. During customer login, the application checks the credentials and uses an email OTP verification step.
 4. Authorized requests read or update the relevant MySQL records.
-5. Sensitive fields that use the crypto utility are encrypted or decrypted by the application as required.
-6. The application returns rendered pages showing account details, transaction results, or administrator monitoring information.
+5. The crypto utility is used where selected fields require encryption or decryption.
+6. The application returns a rendered page showing account information, transaction results, or administrative information.
 
-**Deployment note:** This diagram documents the repository's current Flask/MySQL application flow. It does not imply that AWS EC2, Amazon RDS, a load balancer, or other cloud infrastructure is already configured in the code. Those deployment components must be provisioned and configured separately.
+**Deployment note:** This diagram represents the repository's Flask/MySQL application flow. It does not mean AWS EC2, Amazon RDS, a cloud load balancer, or other cloud infrastructure is already provisioned or configured.
+
+---
+
 ## Project Structure
 
 ```text
@@ -135,7 +163,7 @@ Secure-Cloud-Online-Banking-System/
 |   |   |   |-- auth.py              # Registration, login, OTP, logout
 |   |   |   |-- dashboard.py         # Dashboard, accounts, profile
 |   |   |   |-- transactions.py      # Deposits, withdrawals, transfers, history
-|   |   |   |-- admin.py             # Administrative login and management
+|   |   |   |-- admin.py             # Administrator workflows
 |   |   |
 |   |   |-- utils/
 |   |   |   |-- crypto.py            # AES-GCM and SHA-256 helpers
@@ -146,6 +174,13 @@ Secure-Cloud-Online-Banking-System/
 |   |-- db_update.py                 # Database schema update script
 |   |-- run.py                       # Application entry point
 |
+|-- images/
+|   |-- system-architecture.svg      # System architecture diagram
+|   |-- dashboard.jpeg               # Add dashboard screenshot
+|   |-- login.jpeg                   # Add login screenshot
+|   |-- transactions.jpeg             # Add transaction screenshot
+|   |-- admin-dashboard.jpeg          # Add admin screenshot
+|
 |-- setup_database.py                # Initial database/table setup
 |-- dump_schema.py                   # Database schema utility
 |-- verify_crypto.py                 # Local verification script
@@ -153,35 +188,68 @@ Secure-Cloud-Online-Banking-System/
 |-- README.md
 ```
 
-## Database Overview
+---
 
-The application uses MySQL to store banking data.
+## Banking Workflows
 
-### Users
+### Customer Registration and Login
 
-Stores user identity and authentication fields, including name, email, phone, password hash, role/status fields, and timestamps where present in the active schema.
+1. A user submits registration details.
+2. The application creates the customer record and associated account according to the current workflow.
+3. During login, the application verifies the submitted password.
+4. The customer completes email OTP verification before the authenticated session is established.
 
-### Accounts
+### Deposits and Withdrawals
 
-Associates a banking account with a user and stores account number, balance, currency/type, account status, and creation timestamp.
+1. The customer opens the relevant transaction page.
+2. The application processes the submitted transaction details.
+3. The database is updated through the transaction workflow.
+4. The customer can review transaction information in the transaction list or history.
 
-### Transactions
+### Account-to-Account Transfers
 
-Stores activity such as deposits, withdrawals, and transfers, including amount, description, status, timestamp, and additional transaction metadata used by the application's transaction and admin views.
+1. The customer enters recipient details and the transfer amount.
+2. The application resolves the recipient and processes the transfer workflow.
+3. Transaction records are used to represent the operation and its status.
 
-The repository includes both an initial database setup script and a later schema update script. Make sure the database schema matches the fields used by the current application modules before running the application on a fresh database.
+**Important:** These flows are described for understanding the code. Before any real-world use, transaction processing needs robust server-side validation, atomic database transactions, concurrency controls, and comprehensive tests.
 
-## Getting Started
+---
 
-### Prerequisites
+## Technologies Used
 
-Install the following before setup:
+### Backend
 
-- Python 3.10 or later.
-- MySQL Server.
-- Git.
-- A Gmail account configured for SMTP with an app password, if testing email OTP.
-- A C compiler and MySQL client development libraries if `mysqlclient` requires building from source on your operating system.
+- Python
+- Flask
+- Flask route blueprints
+
+### Database
+
+- MySQL
+- Flask-MySQLdb / mysqlclient
+
+### Frontend
+
+- Jinja2
+- HTML
+- CSS
+- JavaScript
+
+### Security and Configuration
+
+- Bcrypt password hashing
+- SHA-256 helper and preprocessing
+- AES-GCM via the Python cryptography package
+- Flask-WTF CSRFProtect
+- python-dotenv
+- Flask-Mail and SMTP for email OTP delivery
+
+Dependency versions are listed in `requirements.txt`. The current application configuration uses local MySQL settings; any cloud deployment must be provisioned and configured separately.
+
+---
+
+## Deployment Guide
 
 ### 1. Clone the Repository
 
@@ -190,16 +258,16 @@ git clone https://github.com/ayusjakhmola25/Secure-Cloud-Online-Banking-System.g
 cd Secure-Cloud-Online-Banking-System
 ```
 
-### 2. Create and Activate a Virtual Environment
+### 2. Create a Virtual Environment
 
-Windows:
+**Windows PowerShell**
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-Linux or macOS:
+**Linux or macOS**
 
 ```bash
 python3 -m venv .venv
@@ -213,13 +281,13 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Configure Local Environment
+### 4. Configure the Application
 
-Before starting the application, review and update the configuration in `Secure-Cloud-Banking-System/app/__init__.py` and the environment loading path.
+Before running the project, inspect `Secure-Cloud-Banking-System/app/__init__.py` and the database setup scripts.
 
-The current code has database and SMTP settings hard-coded in the Flask application factory, while the encryption key is read from environment configuration. For a local setup, move all secrets to environment variables and update the code to read them consistently. Do not commit real credentials or encryption keys.
+The current repository includes hard-coded database and SMTP settings, and a committed encryption key has been identified in the existing code. Treat exposed values as compromised. Rotate them, remove secrets from source control history where appropriate, and refactor the application to load configuration consistently from environment variables.
 
-Example values to configure locally (replace every placeholder):
+Example local `.env` values (placeholders only):
 
 ```env
 SECRET_KEY=replace-with-a-long-random-secret
@@ -232,7 +300,7 @@ MAIL_USERNAME=your_email@example.com
 MAIL_PASSWORD=your_email_app_password
 ```
 
-These are example variable names; the current application factory must be updated to read the database and mail values from the environment rather than hard-coded values.
+These are example variable names. The application code must be updated to read the database and mail settings from the environment instead of hard-coded values. Never commit real credentials or keys.
 
 Generate a Flask secret key:
 
@@ -240,7 +308,7 @@ Generate a Flask secret key:
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Generate an AES-GCM key in URL-safe Base64 format:
+Generate a URL-safe Base64-encoded 32-byte AES key:
 
 ```bash
 python -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"
@@ -248,24 +316,22 @@ python -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).dec
 
 ### 5. Prepare the Database
 
-Make sure the MySQL service is running and that the configured database user has permission to create the database and tables.
-
-The repository provides a setup script:
+Ensure that MySQL is running. Review `setup_database.py` and `Secure-Cloud-Banking-System/db_update.py` before executing them; replace local credentials and sample administrator data with safe local values.
 
 ```bash
 python setup_database.py
 ```
 
-Review `setup_database.py` and `Secure-Cloud-Banking-System/db_update.py` before running them. The setup script in the current repository contains hard-coded local database credentials and sample administrator data; replace those values with your own local configuration first. Confirm that the resulting schema contains all columns referenced by the active application modules.
+Confirm that the database schema contains the columns referenced by the active route modules.
 
-### 6. Run the Application
+### 6. Start the Application
 
 ```bash
 cd Secure-Cloud-Banking-System
 python run.py
 ```
 
-The current entry point binds to `127.0.0.1:5000`. Open the following URL in your browser:
+The current entry point binds to `127.0.0.1:5000`. Open:
 
 ```text
 http://127.0.0.1:5000
@@ -273,9 +339,9 @@ http://127.0.0.1:5000
 
 The root route redirects to the login page. Email OTP delivery requires valid SMTP configuration.
 
-## Main Application Routes
+---
 
-The following routes are registered in the current code. Some routes accept both GET and POST requests.
+## Main Application Routes
 
 | Route | Purpose |
 |---|---|
@@ -284,7 +350,7 @@ The following routes are registered in the current code. Some routes accept both
 | `/auth/login` | User login |
 | `/auth/verify-otp` | Email OTP verification |
 | `/auth/logout` | End the current session |
-| `/dashboard` | User dashboard |
+| `/dashboard` | Customer dashboard |
 | `/accounts` | Account details |
 | `/profile` | View or update profile |
 | `/deposit` | Deposit workflow |
@@ -300,49 +366,77 @@ The following routes are registered in the current code. Some routes accept both
 | `/admin/accounts` | Account management |
 | `/admin/transactions` | Transaction monitoring |
 
-Administrative mutation endpoints include actions for deleting users and suspending, activating, or closing accounts. Access is intended to be restricted to administrator sessions.
+Administrative mutation endpoints include actions for deleting users and changing account status. Access control for these actions should be verified through dedicated authorization tests.
+
+---
 
 ## Security Notes and Limitations
 
-This repository is an educational project and should be hardened before deployment:
+This repository is an educational project and needs further security work before deployment.
 
-- **Rotate exposed credentials immediately.** The current repository contains hard-coded database and SMTP credentials and a committed encryption key. Treat exposed values as compromised, revoke or rotate them, and remove them from source control history where appropriate.
-- **Do not commit secrets.** Add `.env`, virtual environments, cache directories, and local database exports to `.gitignore`. Commit a `.env.example` containing placeholders only.
-- **Use a stable secret key.** Avoid generating a new Flask `SECRET_KEY` on each startup because it invalidates sessions and CSRF tokens.
-- **Harden transaction operations.** Add server-side validation for numeric amounts, positive values, sufficient balance, and transaction limits; use atomic database transactions and appropriate locking to prevent race conditions.
-- **Review OTP handling.** Use a cryptographically secure random generator, avoid storing raw OTP values in a client-side session, apply rate limits, and avoid exposing internal exception messages to users.
-- **Review session and cookie settings.** Enable secure cookie attributes and HTTPS in deployed environments.
-- **Validate authorization.** Test every user and admin route for access control and ensure that one user cannot access another user's account or transactions.
-- **Verify encryption behavior.** Ensure that keys are managed outside source control, backup/rotation procedures exist, and decryption failures do not silently conceal data corruption.
-- **Do not describe transaction hashes as tamper-proof by themselves.** A plain SHA-256 digest stored beside a transaction is not a complete integrity or audit mechanism.
-- **Test the database schema and workflows.** The setup and schema update scripts may need alignment with the current route implementations.
+- **Rotate exposed credentials immediately.** The code has included hard-coded database/SMTP credentials and a committed encryption key. Revoke or rotate exposed values and remove them from source control history where appropriate.
+- **Do not commit secrets.** Add `.env`, virtual environments, cache directories, and local database exports to `.gitignore`. Keep only placeholder values in `.env.example`.
+- **Use a stable secret key.** Do not generate a new Flask `SECRET_KEY` on every startup.
+- **Harden money movement.** Validate positive numeric amounts, sufficient balances, limits, and recipient ownership. Use atomic database transactions and suitable locking to prevent race conditions.
+- **Review OTP handling.** Use a cryptographically secure random generator, avoid storing raw OTPs in client-side session state, apply rate limiting, and avoid exposing internal exceptions.
+- **Harden sessions and cookies.** Configure secure cookie attributes and HTTPS in deployed environments.
+- **Verify authorization.** Ensure customers cannot view or modify other customers' accounts or transactions.
+- **Review encryption and key management.** Keep keys out of source control and plan for rotation, backups, and safe decryption failure handling.
+- **Do not treat transaction hashes as tamper-proof.** A SHA-256 digest stored beside a transaction is not a complete integrity or audit mechanism.
+- **Test database consistency.** Check that setup scripts and schema updates match the columns used by current route implementations.
 
 Do not use this application with real financial accounts or sensitive customer data until it has undergone professional security testing and deployment hardening.
 
-## Learning Outcomes
+---
 
-This project demonstrates practical work with:
+## Dashboard Capabilities
 
-- Flask application structure and Blueprints.
-- MySQL schema design and relational data access.
-- Session-based authentication and role checks.
-- Email OTP login flows.
-- Password hashing and authenticated encryption concepts.
-- CSRF protection and form handling.
-- Banking workflow modeling and transaction history.
-- Administrative monitoring interfaces.
-- Configuration and deployment security considerations.
+The current application includes customer-facing pages for:
 
-## Future Improvements
+- Account summary and balance information
+- Account details and profile information
+- Deposit, withdrawal, and transfer workflows
+- Transaction list and history
+
+The administrator area includes user and account management views and transaction monitoring. Actual screenshots can be displayed at the top of this README after the corresponding image files are added to the repository.
+
+---
+
+## Future Enhancements
 
 - Move every credential and connection setting to environment-based configuration.
-- Add automated unit and integration tests for authentication and money movement.
+- Add automated unit and integration tests for authentication and transaction workflows.
 - Strengthen transaction atomicity, concurrency handling, and audit logging.
 - Add rate limiting and security-event logging.
 - Improve schema migration management.
 - Add containerized development and deployment support.
-- Use HTTPS and production-grade server configuration.
-- Introduce continuous integration and dependency/security scanning.
+- Configure HTTPS and production-grade server deployment.
+- Add continuous integration and dependency/security scanning.
+- Improve operational monitoring and error handling.
+
+---
+
+## Learning Outcomes
+
+This project provides practical experience in:
+
+- Flask application structure and route blueprints
+- MySQL schema design and relational data access
+- Session-based authentication and role checks
+- Email OTP verification workflows
+- Password hashing and authenticated-encryption concepts
+- CSRF protection and form handling
+- Banking workflow modeling and transaction history
+- Administrative monitoring interfaces
+- Secure configuration and deployment considerations
+
+---
+
+## Conclusion
+
+The Secure Cloud Online Banking System demonstrates how customer authentication, account management, transaction workflows, database persistence, and administrative monitoring can be organized in a Flask application. It serves as a learning project for web development and application-security concepts while documenting the additional controls required before a financial application could be considered for real-world use.
+
+---
 
 ## License
 
