@@ -1,566 +1,331 @@
-<div align="center">
+# Secure Cloud Online Banking System
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1B5EA6,100:0F6E56&height=200&section=header&text=Secure%20Cloud%20Banking%20System&fontSize=38&fontColor=ffffff&fontAlignY=38&desc=Production-grade%20online%20banking%20platform%20%E2%80%94%20Flask%20%2B%20AWS&descAlignY=58&descSize=16" width="100%"/>
+The Secure Cloud Online Banking System is a Flask-based web application that demonstrates core digital banking workflows with a MySQL database and security-focused application components. Users can register, authenticate through password and email OTP verification, view account information, and perform banking operations such as deposits, withdrawals, and account-to-account transfers. An administrative area provides user, account, and transaction oversight.
 
-<br/>
+This project is intended for learning and demonstration. It should not be treated as production-ready banking software without a security review, stronger transaction controls, operational hardening, and deployment-specific testing.
 
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Flask](https://img.shields.io/badge/Flask-3.1.3-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0-00758F?style=for-the-badge&logo=mysql&logoColor=white)](https://mysql.com)
-[![AWS EC2](https://img.shields.io/badge/AWS_EC2-t3.micro-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white)](https://aws.amazon.com/ec2)
-[![Amazon RDS](https://img.shields.io/badge/Amazon_RDS-MySQL-527FFF?style=for-the-badge&logo=amazon-rds&logoColor=white)](https://aws.amazon.com/rds)
-[![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](LICENSE)
+## Problem Statement
 
-<br/>
+Online banking applications handle sensitive personal and financial information. A banking application must protect account data, verify user access, preserve transaction records, and provide appropriate oversight of accounts and transactions.
 
-> 🏦 **A full-stack, cloud-deployed digital banking platform** with AES-256 encryption, OTP authentication, real-time dashboards, and a powerful admin portal — deployed live on AWS EC2 + RDS.
+This project explores these requirements through a web application that combines authentication, database-backed banking workflows, data encryption utilities, password hashing, CSRF protection, and an administrative dashboard.
 
-<br/>
+## Key Features
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-AWS_EC2-FF9900?style=for-the-badge)](http://13.235.42.166:5000)
-[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/ayusjakhmola25/Secure-Cloud-Online-Banking-System)
+### User Authentication and Accounts
 
-</div>
+- User registration with a profile and automatically created account.
+- Login using an email address and password.
+- Email-based one-time password (OTP) verification with a five-minute validity period.
+- Session-based login and logout.
+- Account status checks in relevant authentication flows.
+- Profile and account information pages.
 
----
+### Banking Operations
 
-## 📋 Table of Contents
+- Account balance and summary dashboard.
+- Deposit and withdrawal workflows.
+- Transfers to another account using the recipient's email address or account number.
+- Transaction list and transaction history.
+- Transaction descriptions, timestamps, and status records.
+- SHA-256 transaction digest generation in transaction workflows.
 
-<details open>
-<summary><b>Click to expand / collapse</b></summary>
+### Administrative Functions
 
-- [✨ Features](#-features)
-- [🛠 Tech Stack](#-tech-stack)
-- [🔐 Security Architecture](#-security-architecture)
-- [☁️ AWS Cloud Architecture](#️-aws-cloud-architecture)
-- [📁 Project Structure](#-project-structure)
-- [🚀 Getting Started](#-getting-started)
-- [🗺 API Routes](#-api-routes)
-- [🗄 Database Schema](#-database-schema)
-- [👥 Team](#-team)
+- Separate administrator login flow with role checking.
+- Overview of registered users, accounts, balances, deposits, and transactions.
+- User listing and user deletion.
+- Account listing and account status management, including suspend, activate, and close actions.
+- Transaction monitoring with search and type/status filters.
+- Visibility of high-value transactions for review.
 
-</details>
+### Security Components
 
----
+- Bcrypt password hashing, combined with a SHA-256 preprocessing step in the current authentication implementation.
+- AES-GCM encryption and decryption utilities for sensitive values such as phone numbers and account numbers.
+- Flask-WTF CSRF protection initialized for the application.
+- Parameterized SQL queries in application database operations.
+- Session-based access checks for user and administrator pages.
 
-## ✨ Features
+These features describe the current code, not a claim of a completed security audit. A SHA-256 transaction digest alone is not a complete tamper-proof audit system, and the application requires further review before handling real money or personal information.
 
-<table>
-<tr>
-<td width="50%">
+## Technologies Used
 
-### 👤 User Features
-- 🔐 Secure registration with auto-generated **20-digit encrypted account number**
-- 📧 **Dual-layer login** — password + 6-digit OTP via email
-- ⏱️ OTP expires in 5 minutes, locks after 3 failed attempts
-- 📊 **Live dashboard** — real-time balance, income vs expenses
-- 💸 **Deposit, Withdraw, Transfer** with SHA-256 transaction hash
-- 🔄 **P2P Transfer** via email or account number
-- 📜 Full **transaction history** with audit trail
-- 👤 **Profile management** with encrypted PII
+| Component | Technology | Purpose |
+|---|---|---|
+| Language | Python | Application logic |
+| Web framework | Flask 3.1.x | Routing, sessions, and application setup |
+| Database | MySQL | Users, accounts, and transaction records |
+| Database integration | Flask-MySQLdb / mysqlclient | MySQL connectivity |
+| Templates | Jinja2, HTML, CSS, JavaScript | Server-rendered interface |
+| Password security | bcrypt and SHA-256 preprocessing | Password verification |
+| Data encryption | AES-GCM via Python cryptography package | Encrypting selected sensitive fields |
+| Form protection | Flask-WTF CSRFProtect | CSRF token validation |
+| Configuration | python-dotenv | Loading local environment configuration |
+| Email verification | Flask-Mail with Gmail SMTP configuration | Sending login OTPs |
 
-</td>
-<td width="50%">
+Dependency versions are defined in `requirements.txt`. The repository currently uses MySQL on localhost in its application configuration; AWS deployment components mentioned in earlier project descriptions should be configured and verified separately before use.
 
-### 🛡️ Admin Features
-- 🔒 Separate admin portal with **Role-Based Access Control**
-- 📈 **Network overview** — total assets, users, transaction volume
-- 👥 **User management** — view, suspend, activate, delete
-- 🏦 **Account control** — suspend/close individual accounts
-- 🔍 **Transaction monitoring** with high-value alerts (≥$10,000)
-- 📊 Real-time platform-wide financial statistics
-- 🚨 Instant visibility into suspicious activity
+## Application Architecture
 
-</td>
-</tr>
-</table>
+The application follows a Flask application-factory and Blueprint structure.
 
----
+```text
+                 User / Administrator
+                          |
+                          v
+                    Web Browser
+                          |
+                          v
+                 Flask Application
+                    (run.py)
+                          |
+                          v
+                  create_app()
+                          |
+          +---------------+----------------+
+          |               |                |
+          v               v                v
+   Authentication     Dashboard       Transactions
+      Blueprint       Blueprint        Blueprint
+          |               |                |
+          +---------------+----------------+
+                          |
+                          v
+                     MySQL Database
+               users / accounts / transactions
+                          |
+                          v
+                Administrative Blueprint
 
-## 🛠 Tech Stack
-
-<div align="center">
-
-| Layer | Technology | Purpose |
-|:---:|:---:|:---|
-| ![Python](https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white) | **Python 3.12 + Flask 3.1.3** | Backend framework with Blueprint architecture |
-| ![MySQL](https://img.shields.io/badge/-MySQL-00758F?logo=mysql&logoColor=white) | **MySQL 8.0 via Amazon RDS** | Managed relational database |
-| ![AWS](https://img.shields.io/badge/-AWS-FF9900?logo=amazon-aws&logoColor=white) | **EC2 t3.micro + RDS db.t4g.micro** | Cloud compute + managed database |
-| ![Security](https://img.shields.io/badge/-Security-red?logo=shield&logoColor=white) | **AES-256 GCM + Bcrypt + SHA-256** | Encryption, password hashing, transaction integrity |
-| ![Gunicorn](https://img.shields.io/badge/-Gunicorn-499848?logo=gunicorn&logoColor=white) | **Gunicorn (4 workers)** | Production WSGI server |
-| ![HTML](https://img.shields.io/badge/-Frontend-E34F26?logo=html5&logoColor=white) | **HTML5 + CSS3 + JS + Jinja2** | Responsive UI templates |
-| ![Gmail](https://img.shields.io/badge/-Gmail_SMTP-EA4335?logo=gmail&logoColor=white) | **Flask-Mail + Gmail TLS** | OTP email delivery |
-| ![systemd](https://img.shields.io/badge/-systemd-000000?logo=linux&logoColor=white) | **systemd service** | Auto-start on EC2 reboot |
-
-</div>
-
----
-
-## 🔐 Security Architecture
-
-<details>
-<summary><b>🔑 Password Security — Double Hashing</b></summary>
-
-<br/>
-
-```
-User Password
-     │
-     ▼
-SHA-256 Hash  →  fixed-length digest (protects against length extension attacks)
-     │
-     ▼
-Bcrypt Hash   →  salted + slow hash (protects against brute force)
-     │
-     ▼
-  Database    →  stored as $2b$12$... (unrecoverable)
+Supporting components:
+- app/utils/crypto.py: AES-GCM encryption and SHA-256 helper
+- Flask-WTF: CSRF protection
+- Flask-Mail: email OTP delivery
+- bcrypt: password hash verification
 ```
 
-```python
-# auth.py — registration
-hashed_pwd = hash_sha256(password)                         # Step 1: SHA-256
-hashed    = bcrypt.hashpw(hashed_pwd.encode(), bcrypt.gensalt())  # Step 2: Bcrypt
+## Project Structure
 
-# auth.py — login verification
-hashed_attempt = hash_sha256(password)
-bcrypt.checkpw(hashed_attempt.encode(), stored_hash)  # Compare safely
-```
-
-</details>
-
-<details>
-<summary><b>🔒 AES-256 GCM Encryption</b></summary>
-
-<br/>
-
-All sensitive PII (phone numbers, 20-digit account numbers) is encrypted **before** being stored in the database using AES-256 in GCM (Galois/Counter Mode) — the same standard used by financial institutions worldwide.
-
-```python
-# crypto.py
-def encrypt_aes256(plaintext: str) -> str:
-    key    = _get_key()            # 32-byte key from .env
-    aesgcm = AESGCM(key)
-    nonce  = os.urandom(12)        # random 12-byte nonce every time
-    cipher = aesgcm.encrypt(nonce, plaintext.encode(), None)
-    return base64.urlsafe_b64encode(nonce + cipher).decode()
-
-# Result: "9876543210" → "gAAAABx3mK9...base64..."
-```
-
-> Even if the database is compromised, phone numbers and account numbers are unreadable without the `ENCRYPTION_KEY`.
-
-</details>
-
-<details>
-<summary><b>🧾 SHA-256 Transaction Hashing</b></summary>
-
-<br/>
-
-Every financial transaction gets a **unique cryptographic hash** generated at the time of execution:
-
-```python
-# transactions.py — deposit
-thash = hash_sha256(f"{account_id}-deposit-{amount}-{datetime.now().timestamp()}")
-
-# transactions.py — transfer (both sender and receiver get separate hashes)
-thash      = hash_sha256(f"{from_account_id}-transfer-{amount}-{timestamp}")
-thash_recv = hash_sha256(f"{to_account_id}-transfer_recv-{amount}-{timestamp}")
-```
-
-This creates a tamper-evident audit trail — any modification to transaction data would invalidate the hash.
-
-</details>
-
-<details>
-<summary><b>📧 OTP Email Verification</b></summary>
-
-<br/>
-
-```python
-# auth.py
-otp = str(random.randint(100000, 999999))   # 6-digit OTP
-session['otp_expiry'] = datetime.now() + timedelta(minutes=5)  # 5 min expiry
-session['otp_attempts'] = 0                 # attempt counter
-
-# On verification:
-if attempts >= 3:
-    session.clear()      # lock account after 3 fails
-    return redirect(url_for("auth.login"))
-```
-
-</details>
-
-<details>
-<summary><b>🛡️ CSRF Protection</b></summary>
-
-<br/>
-
-Every form across the entire application is protected with **Flask-WTF CSRF tokens**. Any POST request without a valid token is automatically rejected — prevents cross-site request forgery attacks.
-
-```python
-# app/__init__.py
-csrf = CSRFProtect()
-csrf.init_app(app)    # Applied globally to all routes
-```
-
-</details>
-
----
-
-## ☁️ AWS Cloud Architecture
-
-```
-                    ┌──────────────────────────┐
-                    │   IAM User: Ayush         │
-                    │   Administrator Role      │
-                    └────────────┬─────────────┘
-                                 │ manages
-          ┌──────────────────────▼──────────────────────────┐
-          │              AWS Cloud — ap-south-1              │
-          │                    (Mumbai)                      │
-          │                                                  │
-          │   ┌──────────────────────────────────────────┐   │
-          │   │         VPC — vpc-0b4df868bb430dcfd      │   │
-          │   │                                          │   │
-          │   │  ┌───────────────────────────────────┐  │   │
-          │   │  │      EC2 — bank-server             │  │   │
-          │   │  │      t3.micro │ Ubuntu 24          │  │   │
-          │   │  │      Flask + Gunicorn (4 workers)  │  │   │
-          │   │  │      Port 5000 │ systemd service   │  │   │
-          │   │  └──────────────┬────────────────────┘  │   │
-          │   │                 │ MySQL (Private VPC)    │   │
-          │   │  ┌──────────────▼────────────────────┐  │   │
-          │   │  │      Amazon RDS — bank-database    │  │   │
-          │   │  │      MySQL 8.0 │ db.t4g.micro      │  │   │
-          │   │  │      DB: securebank                │  │   │
-          │   │  │      Snapshot: bank-databasebackup │  │   │
-          │   │  └───────────────────────────────────┘  │   │
-          │   │                                          │   │
-          │   │  Security Groups:                        │   │
-          │   │  bank-security-group → Port 22,80,5000  │   │
-          │   │  ec2-rds-1 / rds-ec2-1 → Internal VPC  │   │
-          │   └──────────────────────────────────────────┘   │
-          │                        │                         │
-          │                  Gmail SMTP                       │
-          │                  (Port 587 TLS)                   │
-          └───────────────────────────────────────────────────┘
-                                   │
-                               HTTP Request
-                                   │
-                         ┌─────────▼──────────┐
-                         │   User's Browser    │
-                         │  EC2-Public-IP:5000 │
-                         └────────────────────┘
-```
-
-**Infrastructure highlights:**
-- 🔒 RDS is **not publicly accessible** — only EC2 can connect via private VPC
-- 🔄 `systemd` service ensures app **auto-starts on reboot**
-- 💾 Manual **RDS snapshot** (`bank-databasebackup`) for disaster recovery
-- 🌍 Deployed in **ap-south-1 (Mumbai)** for low latency in India
-- 🔑 All secrets in `.env` — never hardcoded in source code
-
----
-
-## 📁 Project Structure
-
-```
+```text
 Secure-Cloud-Online-Banking-System/
-│
-├── 📂 Secure-Cloud-Banking-System/        ← Main application
-│   │
-│   ├── 📂 app/
-│   │   ├── 📄 __init__.py                 ← App factory (Flask setup, blueprints, DB, mail, CSRF)
-│   │   │
-│   │   ├── 📂 routes/
-│   │   │   ├── 📄 auth.py                 ← Login, register, OTP verify, logout
-│   │   │   ├── 📄 dashboard.py            ← Dashboard, accounts, profile management
-│   │   │   ├── 📄 transactions.py         ← Deposit, withdraw, transfer, history
-│   │   │   └── 📄 admin.py                ← Admin portal — users, accounts, monitoring
-│   │   │
-│   │   ├── 📂 templates/
-│   │   │   ├── 📂 layouts/                ← Base templates (app_base, auth_base)
-│   │   │   ├── 📂 admin/                  ← Admin templates (dashboard, users, accounts)
-│   │   │   ├── login.html / register.html / otp.html
-│   │   │   ├── dashboard.html / accounts.html / profile.html
-│   │   │   ├── deposit.html / withdraw.html / transfer.html
-│   │   │   └── transactions.html / history.html
-│   │   │
-│   │   ├── 📂 static/
-│   │   │   ├── css/app.css
-│   │   │   └── js/app.js
-│   │   │
-│   │   └── 📂 utils/
-│   │       └── 📄 crypto.py               ← AES-256 encrypt/decrypt + SHA-256 hash
-│   │
-│   ├── 📄 .env                            ← 🔴 Secrets — NEVER commit to Git
-│   ├── 📄 db_update.py                    ← Schema migration script
-│   └── 📄 run.py                          ← Entry point (Gunicorn target)
-│
-├── 📄 setup_database.py                   ← Initial DB + table creation
-├── 📄 verify_crypto.py                    ← Encryption test script
-├── 📄 requirements.txt                    ← Python dependencies
-└── 📄 README.md
+|
+|-- Secure-Cloud-Banking-System/
+|   |-- app/
+|   |   |-- __init__.py              # Flask application factory and configuration
+|   |   |-- routes/
+|   |   |   |-- auth.py              # Registration, login, OTP, logout
+|   |   |   |-- dashboard.py         # Dashboard, accounts, profile
+|   |   |   |-- transactions.py      # Deposits, withdrawals, transfers, history
+|   |   |   |-- admin.py             # Administrative login and management
+|   |   |
+|   |   |-- utils/
+|   |   |   |-- crypto.py            # AES-GCM and SHA-256 helpers
+|   |   |
+|   |   |-- templates/               # Jinja2 HTML templates
+|   |   |-- static/                  # CSS, JavaScript, and static assets
+|   |
+|   |-- db_update.py                 # Database schema update script
+|   |-- run.py                       # Application entry point
+|
+|-- setup_database.py                # Initial database/table setup
+|-- dump_schema.py                   # Database schema utility
+|-- verify_crypto.py                 # Local verification script
+|-- requirements.txt                 # Python dependencies
+|-- README.md
 ```
 
----
+## Database Overview
 
-## 🚀 Getting Started
+The application uses MySQL to store banking data.
+
+### Users
+
+Stores user identity and authentication fields, including name, email, phone, password hash, role/status fields, and timestamps where present in the active schema.
+
+### Accounts
+
+Associates a banking account with a user and stores account number, balance, currency/type, account status, and creation timestamp.
+
+### Transactions
+
+Stores activity such as deposits, withdrawals, and transfers, including amount, description, status, timestamp, and additional transaction metadata used by the application's transaction and admin views.
+
+The repository includes both an initial database setup script and a later schema update script. Make sure the database schema matches the fields used by the current application modules before running the application on a fresh database.
+
+## Getting Started
 
 ### Prerequisites
 
-- Python 3.10+
-- MySQL 8.0 running locally
-- Gmail account with [App Password](https://myaccount.google.com/apppasswords) enabled
+Install the following before setup:
 
-### Step 1 — Clone the repository
+- Python 3.10 or later.
+- MySQL Server.
+- Git.
+- A Gmail account configured for SMTP with an app password, if testing email OTP.
+- A C compiler and MySQL client development libraries if `mysqlclient` requires building from source on your operating system.
+
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/ayusjakhmola25/Secure-Cloud-Online-Banking-System.git
 cd Secure-Cloud-Online-Banking-System
 ```
 
-### Step 2 — Create virtual environment
+### 2. Create and Activate a Virtual Environment
+
+Windows:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+Linux or macOS:
 
 ```bash
-python -m venv venv
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-# Windows
-venv\Scripts\activate
+### 3. Install Dependencies
 
-# macOS / Linux
-source venv/bin/activate
-
+```bash
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### Step 3 — Configure environment
+### 4. Configure Local Environment
 
-Create `.env` inside `Secure-Cloud-Banking-System/`:
+Before starting the application, review and update the configuration in `Secure-Cloud-Banking-System/app/__init__.py` and the environment loading path.
+
+The current code has database and SMTP settings hard-coded in the Flask application factory, while the encryption key is read from environment configuration. For a local setup, move all secrets to environment variables and update the code to read them consistently. Do not commit real credentials or encryption keys.
+
+Example values to configure locally (replace every placeholder):
 
 ```env
-# Flask
-SECRET_KEY=your-strong-random-secret-key-here
-
-# Encryption (AES-256)
-ENCRYPTION_KEY=your-32-byte-base64-key-here
-
-# Database
+SECRET_KEY=replace-with-a-long-random-secret
+ENCRYPTION_KEY=replace-with-a-valid-base64-encoded-32-byte-key
 MYSQL_HOST=localhost
-MYSQL_USER=root
-MYSQL_PASSWORD=your-mysql-password
+MYSQL_USER=your_mysql_username
+MYSQL_PASSWORD=your_mysql_password
 MYSQL_DB=securebank
-
-# Email (OTP)
-MAIL_USERNAME=your-gmail@gmail.com
-MAIL_PASSWORD=your-gmail-app-password
+MAIL_USERNAME=your_email@example.com
+MAIL_PASSWORD=your_email_app_password
 ```
 
-> **Generate ENCRYPTION_KEY:**
-> ```bash
-> python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-> ```
+These are example variable names; the current application factory must be updated to read the database and mail values from the environment rather than hard-coded values.
 
-### Step 4 — Initialize database
+Generate a Flask secret key:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Generate an AES-GCM key in URL-safe Base64 format:
+
+```bash
+python -c "import base64, os; print(base64.urlsafe_b64encode(os.urandom(32)).decode())"
+```
+
+### 5. Prepare the Database
+
+Make sure the MySQL service is running and that the configured database user has permission to create the database and tables.
+
+The repository provides a setup script:
 
 ```bash
 python setup_database.py
 ```
 
-### Step 5 — Run locally
+Review `setup_database.py` and `Secure-Cloud-Banking-System/db_update.py` before running them. The setup script in the current repository contains hard-coded local database credentials and sample administrator data; replace those values with your own local configuration first. Confirm that the resulting schema contains all columns referenced by the active application modules.
+
+### 6. Run the Application
 
 ```bash
 cd Secure-Cloud-Banking-System
 python run.py
 ```
 
-Open `http://127.0.0.1:5000` 🎉
+The current entry point binds to `127.0.0.1:5000`. Open the following URL in your browser:
 
-### Step 6 — Production (AWS EC2)
-
-```bash
-pip install gunicorn
-
-# Run with 4 workers
-gunicorn -w 4 -b 0.0.0.0:5000 run:app
-
-# OR as background service (recommended)
-sudo systemctl start bankapp
-sudo systemctl enable bankapp  # auto-start on reboot
+```text
+http://127.0.0.1:5000
 ```
 
----
+The root route redirects to the login page. Email OTP delivery requires valid SMTP configuration.
 
-## 🗺 API Routes
+## Main Application Routes
 
-<details>
-<summary><b>Authentication Routes</b></summary>
+The following routes are registered in the current code. Some routes accept both GET and POST requests.
 
-| Method | Route | Description |
-|:---:|:---|:---|
-| `GET/POST` | `/auth/login` | User login — validates credentials, triggers OTP |
-| `GET/POST` | `/auth/register` | New user signup — creates user + encrypted account |
-| `GET/POST` | `/auth/verify-otp` | OTP verification — 5 min expiry, 3 attempt lockout |
-| `GET` | `/auth/logout` | Clear session and redirect to login |
+| Route | Purpose |
+|---|---|
+| `/` | Redirects to the login page |
+| `/auth/register` | User registration |
+| `/auth/login` | User login |
+| `/auth/verify-otp` | Email OTP verification |
+| `/auth/logout` | End the current session |
+| `/dashboard` | User dashboard |
+| `/accounts` | Account details |
+| `/profile` | View or update profile |
+| `/deposit` | Deposit workflow |
+| `/deposit/confirm` | Confirm a deposit |
+| `/withdraw` | Withdrawal workflow |
+| `/withdraw/confirm` | Confirm a withdrawal |
+| `/transfer` | Transfer to another account |
+| `/transactions` | Transaction list |
+| `/history` | Transaction history |
+| `/admin/login` | Administrator login |
+| `/admin/dashboard` | Administrative overview |
+| `/admin/users` | User management |
+| `/admin/accounts` | Account management |
+| `/admin/transactions` | Transaction monitoring |
 
-</details>
+Administrative mutation endpoints include actions for deleting users and suspending, activating, or closing accounts. Access is intended to be restricted to administrator sessions.
 
-<details>
-<summary><b>Dashboard Routes</b></summary>
+## Security Notes and Limitations
 
-| Method | Route | Description |
-|:---:|:---|:---|
-| `GET` | `/dashboard` | Main dashboard — balance, stats, recent transactions |
-| `GET` | `/accounts` | Account details — masked account number, balance |
-| `GET/POST` | `/profile` | View & update profile — name, phone (AES encrypted) |
+This repository is an educational project and should be hardened before deployment:
 
-</details>
+- **Rotate exposed credentials immediately.** The current repository contains hard-coded database and SMTP credentials and a committed encryption key. Treat exposed values as compromised, revoke or rotate them, and remove them from source control history where appropriate.
+- **Do not commit secrets.** Add `.env`, virtual environments, cache directories, and local database exports to `.gitignore`. Commit a `.env.example` containing placeholders only.
+- **Use a stable secret key.** Avoid generating a new Flask `SECRET_KEY` on each startup because it invalidates sessions and CSRF tokens.
+- **Harden transaction operations.** Add server-side validation for numeric amounts, positive values, sufficient balance, and transaction limits; use atomic database transactions and appropriate locking to prevent race conditions.
+- **Review OTP handling.** Use a cryptographically secure random generator, avoid storing raw OTP values in a client-side session, apply rate limits, and avoid exposing internal exception messages to users.
+- **Review session and cookie settings.** Enable secure cookie attributes and HTTPS in deployed environments.
+- **Validate authorization.** Test every user and admin route for access control and ensure that one user cannot access another user's account or transactions.
+- **Verify encryption behavior.** Ensure that keys are managed outside source control, backup/rotation procedures exist, and decryption failures do not silently conceal data corruption.
+- **Do not describe transaction hashes as tamper-proof by themselves.** A plain SHA-256 digest stored beside a transaction is not a complete integrity or audit mechanism.
+- **Test the database schema and workflows.** The setup and schema update scripts may need alignment with the current route implementations.
 
-<details>
-<summary><b>Transaction Routes</b></summary>
+Do not use this application with real financial accounts or sensitive customer data until it has undergone professional security testing and deployment hardening.
 
-| Method | Route | Description |
-|:---:|:---|:---|
-| `GET/POST` | `/deposit` | Initiate deposit |
-| `POST` | `/deposit/confirm` | Confirm & execute deposit, generate SHA-256 hash |
-| `GET/POST` | `/withdraw` | Initiate withdrawal |
-| `POST` | `/withdraw/confirm` | Confirm & execute withdrawal with balance check |
-| `GET/POST` | `/transfer` | P2P transfer via email or account number |
-| `GET` | `/transactions` | View recent transaction list |
-| `GET` | `/history` | Full transaction history |
+## Learning Outcomes
 
-</details>
+This project demonstrates practical work with:
 
-<details>
-<summary><b>Admin Routes</b></summary>
+- Flask application structure and Blueprints.
+- MySQL schema design and relational data access.
+- Session-based authentication and role checks.
+- Email OTP login flows.
+- Password hashing and authenticated encryption concepts.
+- CSRF protection and form handling.
+- Banking workflow modeling and transaction history.
+- Administrative monitoring interfaces.
+- Configuration and deployment security considerations.
 
-| Method | Route | Description |
-|:---:|:---|:---|
-| `GET/POST` | `/admin/login` | Admin login (role=admin required) |
-| `GET` | `/admin/dashboard` | Platform overview — users, assets, high-value txns |
-| `GET` | `/admin/users` | All registered users |
-| `POST` | `/admin/users/<id>/delete` | Delete user and all associated data |
-| `GET/POST` | `/admin/accounts` | All accounts — suspend/activate/close |
-| `GET` | `/admin/transactions` | All transactions with search & filter |
-| `GET` | `/admin/logout` | Admin logout |
+## Future Improvements
 
-</details>
+- Move every credential and connection setting to environment-based configuration.
+- Add automated unit and integration tests for authentication and money movement.
+- Strengthen transaction atomicity, concurrency handling, and audit logging.
+- Add rate limiting and security-event logging.
+- Improve schema migration management.
+- Add containerized development and deployment support.
+- Use HTTPS and production-grade server configuration.
+- Introduce continuous integration and dependency/security scanning.
 
----
+## License
 
-## 🗄 Database Schema
-
-<details>
-<summary><b>View Schema</b></summary>
-
-```sql
--- Users Table
-CREATE TABLE users (
-    user_id       INT AUTO_INCREMENT PRIMARY KEY,
-    full_name     VARCHAR(100),
-    email         VARCHAR(100) UNIQUE,
-    phone         VARCHAR(255),          -- AES-256 encrypted
-    password_hash VARCHAR(255),          -- SHA-256 + Bcrypt
-    role          ENUM('user','admin') DEFAULT 'user',
-    last_login    DATETIME,
-    status        VARCHAR(20) DEFAULT 'active',
-    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Accounts Table
-CREATE TABLE accounts (
-    account_id     INT AUTO_INCREMENT PRIMARY KEY,
-    user_id        INT NOT NULL,
-    account_number VARCHAR(255),          -- AES-256 encrypted (20-digit)
-    balance        DECIMAL(15,2) DEFAULT 0.00,
-    status         VARCHAR(20) DEFAULT 'active',
-    account_type   VARCHAR(20) DEFAULT 'Savings',
-    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
--- Transactions Table
-CREATE TABLE transactions (
-    transaction_id     INT AUTO_INCREMENT PRIMARY KEY,
-    account_id         INT NOT NULL,
-    type               VARCHAR(20),       -- deposit / withdraw / transfer
-    amount             DECIMAL(15,2),
-    description        VARCHAR(255),
-    transaction_hash   VARCHAR(255),      -- SHA-256 tamper-proof hash
-    sender_account_id  INT,
-    receiver_account_id INT,
-    balance_after      DECIMAL(15,2),
-    status             VARCHAR(20) DEFAULT 'completed',
-    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (account_id) REFERENCES accounts(account_id)
-);
-```
-
-> 🔐 Fields marked with "AES-256 encrypted" are stored as Base64 ciphertext in the database.
-
-</details>
-
----
-
-## 👥 Team
-
-<div align="center">
-
-**Cloud Team — Graphic Era Hill University (GEHU) | 2026**
-
-<table>
-<tr>
-<td align="center" width="33%">
-<br/>
-<b>Ayush Kumar Jakhmola</b>
-<br/>
-<sub>🚀 Team Lead</sub>
-<br/><br/>
-<sub>Backend architecture, Security module, AWS EC2 + RDS deployment, Gunicorn + systemd setup, App factory pattern</sub>
-<br/><br/>
-<sub>📧 jakhmolaayush51@gmail.com</sub>
-<br/>
-<sub>🆔 241741017</sub>
-</td>
-<td align="center" width="33%">
-<br/>
-<b>Niharika Pandey</b>
-<br/>
-<sub>⚙️ Backend Developer</sub>
-<br/><br/>
-<sub>OTP email system, Dashboard module, Admin portal, Environment configuration</sub>
-<br/><br/>
-<sub>📧 niharikapandey114@gmail.com</sub>
-<br/>
-<sub>🆔 241742014</sub>
-</td>
-<td align="center" width="33%">
-<br/>
-<b>Kanishka Thakur</b>
-<br/>
-<sub>🎨 Frontend + Transactions</sub>
-<br/><br/>
-<sub>Transaction module, Withdrawal module, Frontend UI templates, Testing & validation</sub>
-<br/><br/>
-<sub>📧 kanishkathakur0404@gmail.com</sub>
-<br/>
-<sub>🆔 240421247</sub>
-</td>
-</tr>
-</table>
-
-</div>
-
----
-
-<div align="center">
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0F6E56,100:1B5EA6&height=100&section=footer" width="100%"/>
-
-**⭐ Star this repo if you found it useful!**
-
-[![GitHub stars](https://img.shields.io/github/stars/ayusjakhmola25/Secure-Cloud-Online-Banking-System?style=social)](https://github.com/ayusjakhmola25/Secure-Cloud-Online-Banking-System)
-
-*Built with ❤️ by Cloud Team | GEHU | 2026*
-
-</div>
+Review the repository's license file and ownership requirements before redistributing or deploying this project.
