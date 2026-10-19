@@ -4,6 +4,25 @@ The Secure Cloud Online Banking System is a Flask-based web application that dem
 
 This project is intended for learning and demonstration. It should not be treated as production-ready banking software without a security review, stronger transaction controls, operational hardening, and deployment-specific testing.
 
+<!-- Project screenshots: add these JPEG files to the repository's images/ directory.
+     The width attributes control how large the images appear on GitHub. -->
+
+<p align="center">
+  <img src="images/dashboard.jpeg" alt="Secure Cloud Banking Dashboard" width="900" />
+</p>
+
+<p align="center">
+  <img src="images/login.jpeg" alt="Secure Cloud Banking Login Page" width="700" />
+</p>
+
+<p align="center">
+  <img src="images/transactions.jpeg" alt="Banking Transactions Page" width="900" />
+</p>
+
+<p align="center">
+  <img src="images/admin-dashboard.jpeg" alt="Administrator Dashboard" width="900" />
+</p>
+
 ## Problem Statement
 
 Online banking applications handle sensitive personal and financial information. A banking application must protect account data, verify user access, preserve transaction records, and provide appropriate oversight of accounts and transactions.
