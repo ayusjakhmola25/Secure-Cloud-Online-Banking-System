@@ -93,45 +93,36 @@ These features describe the current code, not a claim of a completed security au
 
 Dependency versions are defined in `requirements.txt`. The repository currently uses MySQL on localhost in its application configuration; AWS deployment components mentioned in earlier project descriptions should be configured and verified separately before use.
 
-## Application Architecture
+## System Architecture
 
-The application follows a Flask application-factory and Blueprint structure.
+The architecture below shows how customer and administrator requests move through the Flask application, its route blueprints, shared security helpers, MySQL data layer, and email OTP service.
 
-```text
-                 User / Administrator
-                          |
-                          v
-                    Web Browser
-                          |
-                          v
-                 Flask Application
-                    (run.py)
-                          |
-                          v
-                  create_app()
-                          |
-          +---------------+----------------+
-          |               |                |
-          v               v                v
-   Authentication     Dashboard       Transactions
-      Blueprint       Blueprint        Blueprint
-          |               |                |
-          +---------------+----------------+
-                          |
-                          v
-                     MySQL Database
-               users / accounts / transactions
-                          |
-                          v
-                Administrative Blueprint
+<p align="center">
+  <img src="images/system-architecture.svg" alt="Secure Cloud Online Banking System Architecture" width="1100" />
+</p>
 
-Supporting components:
-- app/utils/crypto.py: AES-GCM encryption and SHA-256 helper
-- Flask-WTF: CSRF protection
-- Flask-Mail: email OTP delivery
-- bcrypt: password hash verification
-```
+### Architecture Components
 
+- **Presentation layer:** Browser-based customer and administrator interfaces rendered with HTML, CSS, JavaScript, and Jinja2 templates.
+- **Application entry point:** `run.py` starts the Flask application, and `create_app()` configures the application and registers its route blueprints.
+- **Authentication:** Registration, password verification, email OTP verification, and session creation are handled in `app/routes/auth.py`.
+- **Customer dashboard:** Account details, profile information, balance summaries, and recent activity are handled in `app/routes/dashboard.py`.
+- **Transaction processing:** Deposit, withdrawal, transfer, and transaction-history workflows are handled in `app/routes/transactions.py`.
+- **Administration:** Role-checked administrator views support user management, account status management, and transaction monitoring in `app/routes/admin.py`.
+- **Data layer:** MySQL stores user, account, and transaction records.
+- **Security utilities:** `app/utils/crypto.py` provides AES-GCM encryption/decryption helpers and a SHA-256 helper. Bcrypt is used for password-hash verification, and Flask-WTF initializes CSRF protection.
+- **Email service:** Flask-Mail sends login OTPs through the configured SMTP provider.
+
+### How the System Works
+
+1. A customer or administrator opens the web application in a browser.
+2. Flask routes the request to the appropriate authentication, dashboard, transaction, or admin blueprint.
+3. Login checks the submitted credentials. For customer login, the application sends an email OTP and verifies it before completing the session.
+4. Authorized requests read or update the relevant MySQL records.
+5. Sensitive fields that use the crypto utility are encrypted or decrypted by the application as required.
+6. The application returns rendered pages showing account details, transaction results, or administrator monitoring information.
+
+**Deployment note:** This diagram documents the repository's current Flask/MySQL application flow. It does not imply that AWS EC2, Amazon RDS, a load balancer, or other cloud infrastructure is already configured in the code. Those deployment components must be provisioned and configured separately.
 ## Project Structure
 
 ```text
