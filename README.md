@@ -4,6 +4,14 @@ The Secure Cloud Online Banking System is a Flask-based web application that dem
 
 This project is intended for learning and demonstration. It should not be treated as production-ready banking software without a security review, stronger transaction controls, operational hardening, and deployment-specific testing.
 
+## Overview
+
+The Secure Cloud Online Banking System provides a web-based environment for exploring how common banking operations can be organized in a database-backed application. Customers can create an account, sign in with email OTP verification, review account balances and transaction history, and use deposit, withdrawal, and transfer workflows. Administrators have a separate area for reviewing users, managing account status, and monitoring transactions.
+
+The application is built with Python and Flask, uses MySQL for persistent records, and renders its interface with HTML templates, CSS, and JavaScript. Supporting security components include bcrypt-based password hashing, AES-GCM encryption utilities for selected sensitive fields, and Flask-WTF CSRF protection. These are educational implementations and do not by themselves make the application suitable for production banking.
+
+The repository also includes database setup and schema-update utilities to help prepare the local development environment. Configuration and database scripts should be reviewed before use, and credentials must be supplied securely rather than stored in source code.
+
 <!-- Project screenshots: add these JPEG files to the repository's images/ directory.
      The width attributes control how large the images appear on GitHub. -->
 
